@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Form {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  shareToken  String    @unique @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  fields      Field[]
+  responses   Response[]
+}
+
+model Field {
+  id           String      @id @default(cuid())
+  formId       String
+  form         Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type         FieldType
+  label        String
+  placeholder  String?
+  required     Boolean     @default(false)
+  order        Int
+  options      String[]    // For select/checkbox types
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  answers      Answer[]
+}
+
+model Response {
+  id        String   @id @default(cuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  answers   Answer[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  responseId String
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  fieldId    String
+  field      Field    @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value      String
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  SELECT
+  CHECKBOX
+}
